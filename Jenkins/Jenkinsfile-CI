@@ -1,0 +1,93 @@
+pipeline {
+    agent any
+    
+    tools {
+        jdk 'jdk11'
+        maven 'maven'
+    }
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
+
+    stages {
+        stage('Clean') {
+            steps {
+                cleanWs()
+            } 
+        }
+
+        stage('Clone') {
+            steps {
+                sh '''
+                  #[ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
+                  #ssh-keyscan -t rsa,dsa github.com >> ~/.ssh/known_hosts
+                  git clone git@github.com:KatrooXp/Jenkins.git
+                 '''
+            }
+        }   
+
+        stage('Build') {
+            steps {
+                sh '''
+                  cd Jenkins
+                  mvn -B -DskipTests clean package
+                  '''
+            }
+        }
+
+        stage('Sonarqube Analysis') {
+            steps {
+            withSonarQubeEnv('SonarQube') {
+                sh '''
+                  cd Jenkins
+                  mvn sonar:sonar \
+                  -Dsonar.projectKey=maven-jenkins-pipeline \
+                  -Dsonar.projectName='maven-jenkins-pipeline' \
+                  -Dsonar.host.url=http://localhost:9000 
+                  '''
+                }
+            }
+        }
+
+        stage('Docker build image') {
+            steps {
+                sh '''
+                  cd Jenkins
+                  #docker.build("j-h-v")
+                  docker build -t katroodocker/java-hello-world:latest -t katroodocker/java-hello-world:${BUILD_NUMBER} .
+                  docker images
+                  '''
+            }
+        }
+
+        stage('Docker login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+
+        }
+
+        stage('Docker push') {
+            steps {
+                sh 'docker push -a katroodocker/java-hello-world'
+            }
+        }
+
+        stage('Archive_artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'Jenkins/Jenkinsfile', followSymlinks: false
+            }
+        }
+
+        stage('Clean docker images') {
+            steps {
+                sh '''
+                    docker rmi -f katroodocker/java-hello-world:latest
+                    docker rmi -f katroodocker/java-hello-world:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+    }        
+}

@@ -1,0 +1,523 @@
+Description:  This template deploys VPC project-lab-cloud-vpc; 
+  4 Subnets - 2 public and 2 private subnets located in 2 availiability zones (1 pulic and 1 private in each AZ);
+  3 Route tables - 1 for public subnets and 2 for private subnets (1 for each);
+  Internet gateway, attached to public vpc;
+  VPC endpoint com.amazonaws.us-east-1.s3;
+  3 Security groups - for ASG, RDS and LB;
+  S3 bucket with public access blocked;
+  IAM role for EC2 with permission to download from S3 bucket;
+  RDS Aurora (MySQL) database;
+  EC2 - Target group, Application Load balancer with 2 listeners, Launch template, Auto scalig group
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that is prefixed to resource names
+    Type: String
+    Default: project-lab-cf
+
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.1.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.1.1.0/24
+
+  PublicSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
+    Type: String
+    Default: 10.1.2.0/24
+
+  PrivateSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Type: String
+    Default: 10.1.11.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
+    Type: String
+    Default: 10.1.22.0/24
+  
+  IPforLBSG:
+    Description: Please enter the IP range (CIDR notation) for the Load Balancer Security group inbound traffic
+    Type: String
+    Default: 0.0.0.0/0 
+
+  SSLSertificateARN:
+    Description: Please enter SSL serfificate for HTTPS protocol
+    Type: String
+    Default: #insert ARN certificate here
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-igw
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-public-1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-public-2
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-private-1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-private-2
+
+  VPCEndpointS3:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      RouteTableIds: 
+        - !Ref PrivateRouteTable1
+        - !Ref PrivateRouteTable2
+      ServiceName: com.amazonaws.us-east-1.s3
+      VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-public-rt
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-private-rt-1
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: task
+          Value: !Sub ${EnvironmentName}-private-rt-2
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet2
+
+  SecurityGroupASG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for Auto Scaling group. Allows inbound traffic from VPC to port 80 - HTTP
+      GroupName: project-lab-cf-asg-sg
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref VpcCIDR
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-asg-sg
+      VpcId: !Ref VPC
+
+  SecurityGroupRDS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for RDS. Allows inbound traffic from ASG security group to port 3306 - MySQL/Aurora
+      GroupName: project-lab-cf-rds-sg
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref SecurityGroupASG
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-rds-sg
+      VpcId: !Ref VPC
+
+  SecurityGroupLB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for Application LB. Allows inbound traffic from selected IP addresses to ports 443 - HTTPS and 80 - HTTP
+      GroupName: project-lab-cf-lb-sg
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref IPforLBSG
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref IPforLBSG
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-lb-sg
+      VpcId: !Ref VPC
+
+  S3bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: project-lab-cf-bucket
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-S3
+
+  IAMroleS3access:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: IAM role to download files from S3 bucket
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies: 
+        - PolicyName: s3-download
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - s3:ListBucket
+              Resource:
+              - arn:aws:s3:::*
+            - Sid: VisualEditor0
+              Effect: Allow
+              Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              Resource: arn:aws:s3:::*/*
+      RoleName: s3-download-ec2
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-role
+
+  IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: s3-download
+      Roles: 
+        - !Ref IAMroleS3access
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: db subnet group for RDS cluster
+      DBSubnetGroupName: String
+      SubnetIds: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+  
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: project-lab-cf-dbcluster
+      MasterUsername: admin
+      MasterUserPassword: project-lab-cloud-database-password
+      DatabaseName: php_mysql_crud
+      Engine: aurora-mysql
+      EngineMode: serverless
+      EngineVersion: 5.7.mysql_aurora.2.11.3
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 1
+        MinCapacity: 1
+        SecondsUntilAutoPause: 1200
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds: 
+        - !Ref SecurityGroupRDS
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-db
+  
+  LBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPath: /health.html
+      Name: project-lab-cf-tg
+      Port: 80
+      Protocol: HTTP
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-tg
+      TargetType: instance
+      VpcId: !Ref VPC
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: project-lab-cf-lb
+      Scheme: internet-facing
+      IpAddressType: ipv4
+      SecurityGroups: 
+        - !Ref SecurityGroupLB
+      Subnets: 
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-lb
+
+  LBListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      DefaultActions: 
+        - Type: forward
+          TargetGroupArn: !Ref LBTargetGroup
+      Port: 443
+      Protocol: HTTPS
+      Certificates: 
+        - CertificateArn: !Ref SSLSertificateARN
+      SslPolicy: ELBSecurityPolicy-TLS13-1-0-2021-06
+
+  LBListenerHTTP:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      DefaultActions: 
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: 443
+            StatusCode: HTTP_301
+      Port: 80
+      Protocol: HTTP
+      
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: project-lab-cf-launch-template
+      LaunchTemplateData: 
+          IamInstanceProfile: 
+             Arn: !GetAtt IAMInstanceProfile.Arn
+          ImageId: ami-01eccbf80522b562b
+          InstanceType: t2.micro
+          SecurityGroupIds: 
+            - !Ref SecurityGroupASG
+          UserData:
+            Fn::Base64: !Sub |
+              #!/bin/bash
+              yum update -y
+
+              #install httpd
+              yum install httpd -y
+              systemctl start httpd
+              systemctl enable httpd
+
+              #install php
+              sudo su -
+              yum install -y amazon-linux-extras
+              amazon-linux-extras enable php7.4
+              yum clean metadata 
+              yum install -y php-cli php-pdo php-fpm php-json php-mysqlnd
+
+              #install mysql
+              yum install -y mysql
+
+              #download from S3 bucket
+              aws s3 cp s3://project-lab-cf-bucket/php-mysql-crud /var/www/html/ --recursive
+
+              #create table in db if not exist
+              mysql --password=project-lab-cloud-database-password --user=admin --host=project-lab-cf-dbcluster.cluster-cpcq1zkqqbh9.us-east-1.rds.amazonaws.com < /var/www/html/database/script.sql
+
+              #restart httpd server
+              systemctl restart httpd
+      
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: project-lab-cf-asg
+      LaunchTemplate: 
+          LaunchTemplateId: !Ref LaunchTemplate
+          Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      TargetGroupARNs: 
+        - !Ref LBTargetGroup
+      VPCZoneIdentifier: 
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      DesiredCapacity: 1
+      MinSize: 1
+      MaxSize: 3
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      Tags: 
+        - Key: task
+          Value: !Sub ${EnvironmentName}-asg
+          PropagateAtLaunch: false
+
+  ASGScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration: 
+          PredefinedMetricSpecification: 
+              PredefinedMetricType: ALBRequestCountPerTarget
+              ResourceLabel: !Join 
+                - '/' 
+                - - !GetAtt LoadBalancer.LoadBalancerFullName
+                  - !GetAtt LBTargetGroup.TargetGroupFullName
+          TargetValue: 10
+
+Outputs:
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+
+  PublicSubnets:
+    Description: A list of the public subnets
+    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+
+  PrivateSubnets:
+    Description: A list of the private subnets
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+
+  PublicSubnet1:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnet1
+
+  PublicSubnet2:
+    Description: A reference to the public subnet in the 2nd Availability Zone
+    Value: !Ref PublicSubnet2
+
+  PrivateSubnet1:
+    Description: A reference to the private subnet in the 1st Availability Zone
+    Value: !Ref PrivateSubnet1
+
+  PrivateSubnet2:
+    Description: A reference to the private subnet in the 2nd Availability Zone
+    Value: !Ref PrivateSubnet2
+
+  SecurityGroupASG:
+    Description: A reference to the ASG Security Group
+    Value: !Ref SecurityGroupASG
+
+  SecurityGroupRDS:
+    Description: A reference to the RDS Security Group
+    Value: !Ref SecurityGroupRDS
+
+  SecurityGroupLB:
+    Description: A reference to the LB Security Group
+    Value: !Ref SecurityGroupLB
+
+  S3bucket:
+    Description: A reference to S3 bucket with code
+    Value: !Ref S3bucket
+
+  IAMroleS3access:
+    Description: A reference to IAM role for S3 bucket access from EC2
+    Value: !Ref IAMroleS3access
+
+  IAMInstanceProfile:
+    Description: A reference to IAM role for S3 bucket access from EC2
+    Value: !Ref IAMInstanceProfile
+  
+  DBCluster:
+    Description: A reference to DB cluster
+    Value: !Ref DBCluster
+
+  LBTargetGroup:
+    Description: A reference to LB target group
+    Value: !Ref LBTargetGroup
+
+  LoadBalancer:
+    Description: A reference to Load balancer
+    Value: !Ref LoadBalancer
+
+  LaunchTemplate:
+    Description: A reference to launch template
+    Value: !Ref LaunchTemplate
+
+  AutoScalingGroup:
+    Description: A reference to Auto scaling group
+    Value: !Ref AutoScalingGroup

@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'katroodocker/java-hello-world'
+        IP_DEV = '54.234.59.125'
+        IP_QA = '54.89.199.16'
+    }
+
+    stages {
+        stage('Environment setup') {
+            steps {
+                script {
+                    if (DeployEnv.equals("dev")){
+                        HOST = 'ubuntu@ec2-54-234-59-125.compute-1.amazonaws.com'
+                    }
+                    else if(DeployEnv.equals("qa")){
+                        HOST = 'ubuntu@ec2-54-89-199-16.compute-1.amazonaws.com'
+                    }
+                }
+            } 
+        } 
+
+        stage ('Deploy') {
+            steps {
+                sh """
+                  ssh -i /var/lib/jenkins/.ssh/learn_jenkins.pem -tt ${HOST} '''
+                  docker pull ${ImageTag}
+                  docker ps -q --filter ancestor=${DOCKER_IMAGE} | xargs docker stop | xargs docker rm
+                  docker run -d -p 8080:8080 ${ImageTag}
+                  '''
+                """
+            }
+        }
+
+        stage('Healthcheck') {
+            steps {
+                sh '''
+                  sleep 10
+                  curl http://${IP_DEV}:8080/java-hello-world/
+                '''
+            }
+        }
+
+    }        
+}
