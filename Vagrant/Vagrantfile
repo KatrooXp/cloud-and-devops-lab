@@ -1,5 +1,12 @@
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
+
+if ENV['VAGRANT_CLIENT_COUNT']
+VAGRANT_CLIENT_COUNT = ENV['VAGRANT_CLIENT_COUNT']
+else
+VAGRANT_CLIENT_COUNT = 3
+end
+
 Vagrant.configure("2") do |config|
-  #config.vm.provision "shell", inline: "echo Hello"
 
   config.vm.define "dhcp1" do |dhcp1|
     dhcp1.vm.box = "ubuntu/focal64"
@@ -8,22 +15,12 @@ Vagrant.configure("2") do |config|
     dhcp1.vm.provision "shell", path: "dhcp1.sh"
   end
 
-  config.vm.define "client2" do |client2|
-    client2.vm.box = "ubuntu/focal64"
-    client2.vm.network "private_network", type: "dhcp"
-    client2.vm.hostname = "client2"
-  end
-
-  config.vm.define "client3" do |client3|
-    client3.vm.box = "ubuntu/focal64"
-    client3.vm.network "private_network", type: "dhcp"
-    client3.vm.hostname = "client3"
-  end
-
-  config.vm.define "client4" do |client4|
-    client4.vm.box = "ubuntu/focal64"
-    client4.vm.network "private_network", type: "dhcp"
-    client4.vm.hostname = "client4"
-  end
+  (1..VAGRANT_CLIENT_COUNT.to_i).each do |i|
+      config.vm.define "client#{i+1}" do |client|
+        client.vm.box = "ubuntu/focal64"
+        client.vm.network "private_network", type: "dhcp"
+        client.vm.hostname = "client#{i+1}"
+        end
+      end
 
 end
