@@ -1,0 +1,9 @@
+---
+
+- hosts: managed_nodes
+  vars:
+    install_or_remove: remove
+    final_message: collectd was successfully removed
+  roles:
+    - collectd
+  

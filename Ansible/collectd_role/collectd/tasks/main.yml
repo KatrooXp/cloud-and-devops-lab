@@ -1,0 +1,9 @@
+---
+
+- name: '{{ install_or_remove }} collectd' 
+  include_tasks: 
+    file: '{{ install_or_remove }}_collectd.yml'
+
+- name: final message
+  debug:
+    msg: '{{ final_message }}'

@@ -1,0 +1,40 @@
+---
+
+- name: Check if collectd service exists
+  stat: path=/etc/init.d/collectd
+  register: service_status
+
+- name: Stop collectd service
+  become: true
+  service:
+    name: collectd
+    state: stopped
+  when: service_status.stat.exists
+
+- name: Remove collectd and plugins
+  become: true
+  apt: 
+    pkg: 
+      - collectd 
+      - collectd-core
+    state: absent
+
+- name: Remove collectd service
+  become: true
+  file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - /etc/init.d/collectd
+    - /etc/systemd/system/collectd.service
+
+- name: Remove collectd config files
+  become: true
+  file:
+    path: /etc/collectd
+    state: absent
+
+- name: Reload systemd
+  become: true
+  systemd:
+    daemon_reload: yes

@@ -1,0 +1,21 @@
+---
+# defaults file for collectd
+
+vars:
+
+install_or_remove: install
+final_message: collectd was successfully installed
+
+collectd_load_plugins: 
+  - df
+  - processes
+  - protocols
+  - swap
+  - tcpconns
+  - uptime
+  - users
+  - vmem
+
+# see the current collectd exporter versions on https://github.com/prometheus/collectd_exporter/releases/
+collectd_exporter_version: "0.6.0"
+collectd_exporter_file: "collectd_exporter-0.6.0.aix-ppc64"

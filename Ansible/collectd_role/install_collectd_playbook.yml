@@ -1,0 +1,5 @@
+---
+
+- hosts: managed_nodes
+  roles:
+    - collectd

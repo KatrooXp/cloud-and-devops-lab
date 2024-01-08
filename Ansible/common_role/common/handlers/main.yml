@@ -1,0 +1,6 @@
+---
+
+- name: reboot nodes
+  become: true
+  reboot:
+    msg: "Rebooting node after disabling SELinux ..."

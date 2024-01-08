@@ -13,7 +13,7 @@ Deploying same with CloudFormation
 Deploying example crud project to AWS with Terraform - with modules structure, remote state and lock
 
 ## Ansible
-in progress
+Creating and running ansible roles to configure linux nodes
 
 ## Docker
 Deploying example crud project with docker compose

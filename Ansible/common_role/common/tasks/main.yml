@@ -1,0 +1,15 @@
+---
+
+- name: install package list
+  include_tasks: 
+    file: install_packages.yml
+    apply:
+      tags: [ never, install_packages ]
+  tags: [ never, install_packages ]
+
+- name: disable SELinux
+  include_tasks: 
+    file: selinux.yml
+    apply:
+      tags: [ never, disable_selinux ] 
+  tags: [ never, disable_selinux ]  

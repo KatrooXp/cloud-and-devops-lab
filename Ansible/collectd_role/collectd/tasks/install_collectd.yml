@@ -1,0 +1,46 @@
+---
+
+- name: Install collectd service
+  become: true
+  apt: 
+    pkg: collectd
+    state: latest
+    update_cache: true
+    cache_valid_time: 3600
+  notify: Collectd restart
+
+- name: Download and extract write_prometheus plugin
+  get_url:
+    url: "https://github.com/prometheus/collectd_exporter/releases/download/v{{ collectd_exporter_version }}/{{ collectd_exporter_file }}.tar.gz"
+    dest: "/tmp/"
+
+- name: Extract write_prometheus plugin
+  unarchive:
+    src: "/tmp/{{ collectd_exporter_file }}.tar.gz"
+    dest: "/tmp/"
+    remote_src: yes
+
+- name: Copy write_prometheus plugin files
+  become: true
+  copy:
+    src: "/tmp/{{ collectd_exporter_file }}/"
+    dest: "/usr/share/collectd/write_prometheus/"
+    remote_src: yes
+  notify: Collectd restart
+
+- name: Configure write_prometheus plugin
+  become: true
+  template:
+    src: "prometheus.conf.j2"
+    dest: "/etc/collectd/collectd.conf.d/prometheus.conf"
+  notify: Collectd restart
+
+- meta: flush_handlers
+
+- name: Collectd gather facts
+  service_facts:
+  register: services_state
+
+- name: Collectd status
+  debug:
+    var: services_state.ansible_facts.services['collectd.service']

@@ -1,0 +1,15 @@
+---
+
+- name: Install packages from list
+  become: true
+  apt: 
+    pkg: "{{ package_list }}"
+
+    state: latest
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: package list
+  debug:
+    msg: 
+      " {{ package_list }}"
