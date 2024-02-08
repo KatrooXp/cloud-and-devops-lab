@@ -1,7 +1,6 @@
 ### 6.1.a. Analysing network interfaces
 
-### 1. Дослідити мережеві налаштування на вашому комп'ютері. Виконати перевірку щодо всіх
-доступних мережевих інтерфейсів у системі. (ifconfig / ip)
+### 1. Examine the network settings on your computer. Perform a check on all available network interfaces on the system. (ifconfig /ip)
 
 ![Alt text](<pictures/Screenshot from 2023-07-19 17-23-08.png>)
 
@@ -19,7 +18,7 @@
 
     - Ifconfig additionally provides statistics on received and transmitted packets, bytes, errors, drops, overruns, carrier status, and collisions on the wireless interface
 
-### 2. Перевірити якість зв'язку (на домени ukr.net, google.com, 8.8.8.8, та інші), пояснити виведення команди ping.
+### 2. Check the quality of the connection (to domains ukr.net, google.com, 8.8.8.8, and others), explain the output of the ping command.
 
 ![Alt text](<pictures/Screenshot from 2023-07-19 18-12-03.png>)
 
@@ -36,7 +35,7 @@
     ping with larger size of data shows that avg and max time was increased, thus it did not affected in country traffic as much as abroad
 
 
-### 3. Перевірити якість зв'язку (на host студента), максимально навантажити host. (використовувати команду ping, mtr, tracert)
+### 3. Check the quality of the connection (on the student's host), load the host as much as possible. (use the ping, mtr, tracert command)
 
 ![Alt text](<pictures/Screenshot from 2023-07-20 18-08-28.png>)
 
@@ -64,14 +63,14 @@
 
     we can choose protocol in mtr command to enlarge test load and tcp lets test the biggest load (200 Mbit on the screen, as example)
 
-### 4. Вивчення MTU:
+### 4. Study MTU:
 
-a. Отримати значення MTU локальних інтерфейсів;
+a. Get MTU values of local interfaces;
 
     With ifconfig or ip a command (task 1)
     In this task I use virual machicne with Ubuntu 22.04.2. Default MTU on enp0s3 interface is 1500 bytes.
 
-b. Змінити значення MTU локальних інтерфейсів. Визначити допустимі значення MTU. Як це позначиться на каналі зв'язку?
+b. Change the MTU value of local interfaces. Determine the permissible MTU values. How will it affect the communication channel?
 
     First, I tried to ping 8.8.8.8 with 1500 and 1501 bytes packetsize:
 
@@ -94,7 +93,7 @@ b. Змінити значення MTU локальних інтерфейсів
 
 ![Alt text](<pictures/Screenshot from 2023-07-21 14-07-13.png>)
 
-c. Увімкніть режим Jumbo Frame. Промоделювати переваги та недоліки. Налаштувати між двома віртуальними машинами.
+c. Enable Jumbo Frame mode. Model the advantages and disadvantages. Configure between two virtual machines.
 
     I have changed mtu to 9000, but packet size I can send between virtual machines remains the same
 
@@ -107,21 +106,21 @@ c. Увімкніть режим Jumbo Frame. Промоделювати пер�
 
     So, the main benefit of jumbo frame is possibility to send large packets between machines, the main drowbacks are - too bit load to the machine and limitation of usage (can only be used if both machines are controlled by admin)
 
-d. обчислити MTU каналу зв'язку,оОписати процес обчислення
+d. calculate the MTU of the communication channel, describe the calculation process
 
     To find mtu of the other machine's interface I would enlarge mtu on my machine and then ping the other machine with flags -s and -M, until find the limit 
 
-e. Змініть довжину черги передачі та промоделюйте її роботу після змін. Зробіть кілька змін.
+e. Change the length of the transmission queue and simulate its operation after the changes. Make a few changes.
 
     I changed qlen from 1 to 100000 and didn't find any changes using ping, traceroute or mtr commands
 
-### 5.Вивчення MAC:
-a. Знайти всі доступні MAC-адреси у вашій мережі (хости колег, ресурсів)
-b. використовуйте команди arp і ip.
+### 5. Study MAC:
+a. Find all available MAC addresses in your network (colleague hosts, resources)
+b. use the arp and ip commands.
 
 ![Alt text](<pictures/Screenshot from 2023-07-23 15-02-15.png>)
 
-c. Придумайте реалізацію системи автоматичного виявлення змін (появи або вимкнення пристрою/VM і т.д.) у локальній мережі.
+c. Come up with an implementation of a system for automatic detection of changes (appearance or shutdown of a device/VM, etc.) in a local network.
 
     It should be script that monitors changes in the ARP table of my router. The ARP table contains the mapping between IP addresses and MAC addresses of devices on the network. A change in the MAC address or IP address indicates the appearance or disappearance of a device. As monitoring tool I choosed arp-scan command (see device-online-monitor.sh):
         1. scan the local network
@@ -142,7 +141,7 @@ i. Set a temporary static IP address.
 
 ![Alt text](<pictures/Screenshot from 2023-07-28 22-51-52.png>)
 
-ii. Встановити перманентну статичну IP-адресу.
+ii. Set a permanent static IP address.
 
     sudo vim /etc/netplan/00-installer-config.yaml
 
@@ -150,8 +149,7 @@ ii. Встановити перманентну статичну IP-адресу
 
     sudo netplan apply
 
-iii. Встановити статичну IP-адресу з мінімально допустимою маскою для мережі з кількістю комп'ютерів 2^(<останнє число вашого ID-пропуску> або <дати народження>, 
-якщо число дорівнює 0, або 1 то брати наступне)
+iii. Set a static IP address with a minimum allowable mask for a network with the number of computers 2^ (<last number of your ID pass> or <date of birth>, if the number is 0 or 1, then take the following)
 
     my date of birth is 27
     quantity of computers - 128
@@ -159,13 +157,13 @@ iii. Встановити статичну IP-адресу з мінімальн
 
     the process is the same as in previous task: sudo vim /etc/netplan/00-installer-config.yaml - configuration - sudo netplan apply
 
-iv. Призначити кілька IP адрес на один інтерфейс канального рівня.
+iv. Assign multiple IP addresses to one link layer interface.
 
 ![Alt text](<pictures/Screenshot from 2023-07-28 23-41-37.png>)
 
 ![Alt text](<pictures/Screenshot from 2023-07-28 23-43-27.png>)
 
-v. Способи зміни MAC-адреси в операційних системах. Встановити локально адміністровану MAC-адресу, що адмініструється. (Знайдіть де це використовується)
+v. Ways to change the MAC address in operating systems. Set the locally administered MAC address. (Find where it's used)
 
     for Linux:
     sudo ifconfig <interface> hw ether <new_MAC>
@@ -182,13 +180,13 @@ vi. Get the list of MAC addresses for multicast.
 
 vii. Verify what has been done with the ip and ipconfig (ifconfig) command.
 
-b. Налаштувати адресу шлюзу. У разі використання кількох інтерфейсів пояснити, як працюватимуть шлюзи.
+b. Configure gateway address. If multiple interfaces are used, explain how the gateways will work.
 
 ![Alt text](<pictures/Screenshot from 2023-07-29 17-55-46.png>)
 
     When using multiple network interfaces, each interface can have its own gateway, a routing table defines which route should be used to forward packets to specific networks or IP addresses. The operating system assigns priorities to different network interfaces. Typically, one interface has a higher priority and is considered the primary or default interface. Traffic that doesn't have a specific routing rule will be sent through the primary interface and its gateway
 
-c. Призначення маски для host і для router
+c. Assignment of mask for host and for router
 
     /24 mask for router
 
@@ -196,7 +194,7 @@ c. Призначення маски для host і для router
 
     host: process is the same as in task 6a.ii: sudo vim /etc/netplan/00-installer-config.yaml - configuration - sudo netplan apply
 
-d. Отримати список мережевих протоколів та їхніх версій, які підтримуються ядром системи.
+d. Get a list of network protocols and their versions supported by the system kernel.
 
 ![Alt text](<pictures/Screenshot from 2023-07-29 22-59-26.png>)
 
@@ -231,7 +229,7 @@ ii. Find the broadcast frame (identify the service that receives/sends it)
 
     This packet is a DHCP request (BOOTP/DHCP)
 
-iii. Перехопити трафік, що моделює роботу протоколу ARP.
+iii. Intercept traffic simulating the operation of the ARP protocol.
 
 ![Alt text](<pictures/Screenshot from 2023-07-30 00-09-50.png>)
 
@@ -249,7 +247,7 @@ i. Determine the application layer service it belongs to and what type of traffi
     - Application layer service: DNS
     - Type of traffic: DNS query
 
-ii. Знайти вхідний і вихідний IP пакети. Пояснити захоплений трафік.
+ii. Find incoming and outgoing IP packets. Explain captured traffic.
 
     Outgoing packet, sent from katroocomp to 45.60.65.216:
 
@@ -285,7 +283,7 @@ iii. Find packets that are (unicast, broadcast, multicast).
     23:35:58.139608 IP 224.0.0.251.mdns > katroocomp.57556: 0 PTR (QM)? 45.65.60.45.in-addr.arpa. (43)
 
 
-iv. Знайти пакети, які підтверджують виконання фрагментації IP на Ethernet (визначити які розміри пакетів прийшли одержувачу і яка кількість).
+iv. Find packets that confirm the execution of IP fragmentation on Ethernet (determine which packet sizes arrived at the recipient and how many).
 
     command: sudo tcpdump -r capture.pcap '((ip[6:2] > 0) and (not ip[6] = 64))'
 
@@ -315,7 +313,7 @@ iv. TCP segments that confirm the connection termination process.
 
 ![Alt text](<pictures/Screenshot from 2023-08-01 20-31-01.png>)
 
-v. Виконати передачу великих сегментів TCP/UDP. Обчислити MSS. Переглянути весь трафік передачі великого сегмента на нижніх рівнях моделі TCP/IP. 
+v. Perform transfer of large TCP/UDP segments. Calculate the MSS. View all large segment transmission traffic at the lower layers of the TCP/IP model.
 
     on receiving host
 
@@ -353,13 +351,13 @@ iv. * HTTPS (TCP’s segments)
 
 ![Alt text](<pictures/Screenshot from 2023-08-01 23-02-12.png>)
 
-### 3. Виконати пошук логінів і паролів у трафіку HTTP і FTP
+### 3. Search for logins and passwords in HTTP and FTP traffic
 
     sudo tcpdump port http or port ftp -l -A | egrep -i -B5 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|username:|password:|login:|pass |user'
 
 ![Alt text](<pictures/Screenshot from 2023-08-08 23-52-41.png>)
 
-### 4. Виконати тестування пропускної спроможності мережі за протоколами TCP, UDP і SCTP* з використанням Iperf3
+### 4. Perform network bandwidth testing using TCP, UDP and SCTP* protocols using Iperf3
 
     TCP
     server:
@@ -382,13 +380,13 @@ iv. * HTTPS (TCP’s segments)
 ### 6.1.c. Host diagnostics
 
 ### 1. Monitor network activity of the local system (commands: netstat, ss, iptraf, nc)
-a. Виявлення активних з'єднань
+a. Detection of active connections
 
 ![Alt text](<pictures/Screenshot from 2023-08-07 22-55-28.png>)
 
 ![Alt text](<pictures/Screenshot from 2023-08-07 22-58-49.png>)
 
-b. проаналізувати відкриті порти (UDP, TCP). Дати їхню класифікацію
+b. analyze open ports (UDP, TCP). Give their classification
 
     TCP Ports:
 
@@ -410,20 +408,20 @@ b. проаналізувати відкриті порти (UDP, TCP). Дати
 
     631 - used by the CUPS for printer service
 
-c. пояснити в якому стані перебувають мережеві з'єднання
+c. explain the state of network connections
 
     LISTEN: The connection is actively listening for incoming connections on a specified port
     UNCONN: the socket is not actively connected to any remote endpoint
 
-d. визначити основні, запущені мережеві служби (процеси). Які з них працюють у режимі сервера
+d. determine the main, running network services (processes). Which of them work in server mode
 
     SSH, DNS, MongoDB, PostgreSQL, CUPS, HTTP - working in server mode (LISTEN)
 
-e. пояснити в якому стані перебуває сполука
+e. explain what state the compound is in
 
     did not understood the question - what is meant by "сполука". Please, rephrase in English
 
-f. використовуючи команду ping побудувати маршрут пакетів через роутери до одержувача. Написати скрипт (python).
+f. using the ping command to build a packet route through routers to the recipient. Write a script (python).
 
     I used ping command with new TTL value for each successive ping request. As the TTL increased, the packets traversed further through the network and reached different routers along the path
 
@@ -434,13 +432,13 @@ f. використовуючи команду ping побудувати мар�
 ![Alt text](<pictures/Screenshot from 2023-08-08 00-14-13.png>)
 
 
-### 2. Виконати перевірку відкритих портів за протоколами TCP/UDP (netstat, ss, iptraf, nc, lsof):
+### 2. Check open ports using TCP/UDP protocols (netstat, ss, iptraf, nc, lsof):
 
-a. на локальному хості;
+a. on the local host;
 
 ![Alt text](<pictures/Screenshot from 2023-08-08 20-45-07.png>)    
 
-b. на віддаленому хості;
+b. on the remote host;
 
     we can use commands:    
     nmap -sT destination_host - if there's no firewall
@@ -450,7 +448,7 @@ b. на віддаленому хості;
 
 ![Alt text](<pictures/Screenshot from 2023-08-08 21-14-58.png>)
 
-c. пояснити принцип перевірки, на чому він заснований (a, b)
+c. explain the principle of verification, what it is based on (a, b)
 
     a) netstat and ss:
     these tools are interacting with the operating system's kernel to gather information about the network's state and connections
@@ -465,10 +463,6 @@ c. пояснити принцип перевірки, на чому він за
 
     d) lsof:
     lsof analyzing the system's open file log, which includes network ports being listened to by processes on the system
-
-d. запропонувати utils для перевірки відкритих портів (для ОС Linux, containers).
-
-    all utils that are used before - same for Linux and containers
 
 
 

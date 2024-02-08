@@ -1,7 +1,7 @@
 # m3-Linux-Task1
 
 ## Task1
-Знайти всі системні групи й отримати тільки їхні унікальні імена та id. Зберегти у файл
+Find all system groups and get only their unique names and ids. Save to file
 
 Commands: 
 1. find all system groups: getent group
@@ -13,14 +13,14 @@ Commands:
     getent group | cut -d: -f1,3 > task1.txt
 
 ## Task2
-Знайти всі файли і директорії, які мають права для доступу відповідних user і group
+Find all files and directories that have access rights for the corresponding user and group
 
 **Solution:**
     
     find /path -user username -group groupname
 
 ## Task3
-Знайти всі скрипти в зазначеній директорії та її піддиректоріях
+Find all scripts in the specified directory and its subdirectories
 
 Commands for main solution: 
 1. find all executable files: find /path/to/dig -executable
@@ -35,14 +35,14 @@ Commands for main solution:
     find /path/to/dig -type f -executable | xargs grep -l '^#!/'
 
 ## Task4
-Виконати пошук файлів скриптів з-під певного користувача
+Search for script files from a specific user
 
 **Solution:**
 
     find /path/to/dig -type f -executable -user username
 
 ## Task5
-Виконати рекурсивний пошук слів або фрази для певного типу файлів
+Perform a recursive word or phrase search for a specific file type
 
 **Solution:**
     for example, in .txt files
@@ -50,7 +50,7 @@ Commands for main solution:
     find /path -type f -name "*.txt" -exec grep -H "text_to_find" {} +
 
 ## Task6
-Знайти дублікати файлів у заданих каталогах. Спочатку порівнювати за розміром, потім за варіантом (вибрати хеш функцію: CRC32, MD5, SHA-1, sha224sum). Результат має бути відсортований за ім'ям файлу
+Find duplicate files in specified directories. First, compare by size, then by option (choose a hash function: CRC32, MD5, SHA-1, sha224sum). The result should be sorted by filename
 
 Commands: 
 1. find all not empty files: find /path/to/dig ! -empty -type f
@@ -71,21 +71,21 @@ Commands:
     find /path/to/dig ! -empty -type f -exec md5sum {} + | sort | uniq -w32 -dD
 
 ## Task7
-Знайти за іменем файлу та його шляхом усі символьні посилання на нього.
+Find all symlinks to a file by file name and path.
 
 **Solution:**
 
     find /path/to/dig -lname '/path/to/file'
 
 ## Task8
-Знайти за іменем файлу та його шляхом усі жорсткі посилання на нього.
+Find all hard links to a file by file name and path.
 
 **Solution:**
 
     find /path/to/dig -samefile /path/to/file
 
 ## Task9
-Є тільки inode файлу знайти всі його імена.
+There is only the inode of the file to find all its names.
 
 Commands for first option of solution: 
 1. find the inode by number: find . -type f -inum <inode-number>
@@ -100,7 +100,7 @@ Commands for first option of solution:
     find /path/to/dig -inum <inode-number>  
 
 ## Task10
-Є тільки inode файлу знайти всі його імена. Врахуйте, що може бути примонтовано кілька розділів 
+There is only the inode of the file to find all its names. Note that multiple partitions may be mounted
 
 If use / as path, find command will look though all mounted points
 
@@ -109,7 +109,7 @@ If use / as path, find command will look though all mounted points
     find / -inum <inode_number> 
 
 ## Task11
-Коректно видалити файл з урахуванням можливості існування символьних або жорстких посилань
+Correctly delete the file, taking into account the possibility of the existence of symbolic or hard links
 
 Commands: 
 1. find all soft links and delete: find /path/to/dig -lname '/path/to/file' -delete
@@ -120,7 +120,7 @@ Commands:
     find /path/to/dig -lname '/path/to/file' -delete | find /path/to/dig -samefile /path/to/file -delete
 
 ## Task12
-Рекурсивно змінити права доступу до файлів (задано маску файлу) у заданій директорії
+Recursively change access rights to files (given file mask) in the given directory
 
 **Solution:**
     
@@ -130,7 +130,7 @@ Commands:
     find . -type f -name "*.sh" -exec chmod -R +x {} +
 
 ## Task13
-* Порівняти рекурсивно дві директорії і відобразити тільки ті файли, що відрізняються. * (вивести до 2 рядка і після 3 рядка відносно рядка, в якому знайдено відмінність).
+* Recursively compare two directories and display only those files that differ. * (output up to the 2nd line and after the 3rd line relative to the line in which the difference is found).
 
 Commands: 
 1. compare two directories recursively, output 3 (by default) lines before and after difference: diff -r -c dir1 dir2
@@ -141,14 +141,14 @@ Commands:
     diff -r -c task13 task13_copy | grep -B 2 -A 3 '!' 
 
 ## Task14
-Отримати MAC-адреси мережевих інтерфейсів
+Get MAC addresses of network interfaces
 
 **Solution:**
 
     ip link
 
 ## Task15
-Вивести список користувачів, авторизованих у системі на поточний момент
+Display the list of users currently authorized in the system
 
 **Solution:**
 
@@ -157,7 +157,7 @@ Commands:
     w
 
 ## Task16
-Вивести список активних мережевих з'єднань у вигляді таблиці: тип стану з'єднання та їх кількість
+Display a list of active network connections in the form of a table: the type of connection status and their number
 
 Commands:
 1. show all active connections: ss -nat / netstat -nat
@@ -173,14 +173,14 @@ Commands:
     netstat -nat | grep -c LISTEN | xargs -I {} echo "LISTEN: {}" && netstat -nat | grep -c ESTABLISHED | xargs -I {} echo "ESTABLISH: {}" && netstat -nat | grep -c TIME_WAIT | xargs -I {} echo "TIME_WAIT: {}"
 
 ## Task17
-Перепризначити наявне символьне посилання.
+Reassign an existing symbolic link.
 
 **Solution:**
 
     ln -sf /path/to/existing/slink /path/to/new/slink
 
 ## Task18
-Є список фалів з відносним шляхом і шляхом до каталогу, в якому має зберігатися символьне посилання на файл. Створити символьні посилання на ці файли
+There is a list of files with a relative path and a path to the directory in which the symbolic link to the file should be stored. Create symbolic links to these files
 
 Commands: 
 1. cat the file with files list: cat file_list 
@@ -192,7 +192,7 @@ Commands:
     cat file_list | while read -r file path_to_dir; do ln -s "$file" "$path_to_dir"; done
 
 ## Task19
-Скопіювати директорію з урахуванням, що в ній існують як прямі, так відносні символьні посилання на файли та директорії. Передбачається, що копіювання виконується for backup on a removable storage. (зробити в двох варіантах, без rsync і з rsync)
+Copy the directory, taking into account that it contains both direct and relative symbolic links to files and directories. It is assumed that copying is performed for backup on a removable storage. (do it in two versions, without rsync and with rsync)
 
 Commands: 
 1. cp command with -R - recursive and -L - follow symbolic links and copy the target of each link instead of the link itself
@@ -207,7 +207,7 @@ Commands:
     rsync -aL source_dir/ destination_dir
 
 ## Task20
-Скопіювати директорію з урахуванням, що в ній існують прямі символьні відносні символьні посилання
+Copy the directory, taking into account that there are direct symbolic relative symbolic links in it
 
 Commands: 
 1. cp command with -R - recursive and -P - preserves the symbolic links as symbolic links, without following them
@@ -217,7 +217,7 @@ Commands:
     cp -RP source_dir destination_dir
 
 ## Task21
-Скопіювати всі файли та директорії із зазначеної директорії в нове розташування зі збереженням атрибутів і прав
+Copy all files and directories from the specified directory to the new location, preserving attributes and rights
 
 Commands: 
 1. cp command with -a enables archive mode, which ensures recursive copying of all files and subdirectories from the specified directory to the destination directory while preserving attributes and permissions
@@ -227,7 +227,7 @@ Commands:
     cp -a source_directory destination_directory
 
 ## Task22
-У директорії проекту перетворити всі відносні посилання на прямі.
+In the project directory, convert all relative links to direct links.
 
 Commands: 
 1. search for all symbolic links within the project directory: find /path/to/project -type l
@@ -240,7 +240,7 @@ Commands:
     find /path/to/project -type l -print0 | while read -r -d '' link; do ln -sf "$(readlink -f "$link")" "$link"; done
 
 ## Task23
-У директорії проекту перетворити всі прямі посилання у відносні, відносно директорії проекту.
+In the project directory, convert all direct links to relative, relative to the project directory.
 
 Commands: 
 1. -3. same as in previous task
@@ -253,7 +253,7 @@ Commands:
     find /path/to/project -type l -print0 | while read -r -d '' link; do target=$(readlink "$link"); target_dir=$(dirname "$link"); relative_path=$(realpath --relative-to="$target_dir" "$target"); ln -sfn "$relative_path" "$link"; done
 
 ## Task24
-У зазначеній директорії знайти всі зламані посилання і видалити їх
+Find all broken links in the specified directory and delete them
 
 Commands: 
 1. find all symbolic links: find /path/to/dig -type l
@@ -266,7 +266,7 @@ Commands:
     find /path/to/dig -type l ! -exec test -e {} \; -print | while read -r link; do rm "$link"; done
 
 ## Task25
-Розпакувати з архіву tar, gz, bz2, lz, lzma, xz, Z певний каталог/файл у вказане місце.
+Extract a specific directory/file from the tar, gz, bz2, lz, lzma, xz, Z archive to the specified location.
 
 **Solution:**
 
@@ -285,7 +285,7 @@ Commands:
     tar -xZf /path/to/archive.Z -C /path/to/target/dir
 
 ## Task26
-Упакувати структуру директорію з файлами зі збереженням усіх прав і атрибутів
+Pack the directory structure with files while preserving all rights and attributes
 
 Commands: 
 1. tar command with -p flag to preserve rights and attributes
@@ -295,7 +295,7 @@ Commands:
     tar -cpf file.tar /path/to/directory
 
 ## Task27
-Рекурсивно скопіювати структуру каталогів із зазначеної директорії. (без файлів)
+Recursively copy the directory structure from the specified directory. (without files)
 
 Commands: 
 1. go to source directory you need to copy
@@ -308,7 +308,7 @@ Commands:
     cd /path/to/sourece/dir && find . -type d -exec mkdir -p /path/to/destination/{} \;
 
 ## Task28
-Вивести список усіх користувачів системи (тільки імена) за алфавітом
+List all system users (names only) alphabetically
 
 Commands: 
 1. from /etc/passwd cut with deliminator ":", take first field: cut -d: -f1
@@ -319,7 +319,7 @@ Commands:
     cut -d: -f1 /etc/passwd | sort
 
 ## Task29
-Вивести список усіх системних користувачів системи відсортованих за id, у форматі: login id
+Display a list of all system users of the system sorted by id, in the format: login id
 
 Commands: 
 1. from /etc/passwd cut with deliminator ":", take first and third field: cut -d: -f1,3
@@ -331,7 +331,7 @@ Commands:
     cut -d: -f1,3 /etc/passwd | grep ':[0-9]\{1,3\}$' | sort -n -t: -k2
 
 ## Task30
-Вивести список усіх користувачів системи (тільки імена) відсортовані за id у зворотному порядку
+List all system users (names only) sorted by id in reverse order
 
 Commands: 
 1. from /etc/passwd cut with deliminator ":", take first and third field: cut -d: -f1,3
@@ -343,7 +343,7 @@ Commands:
     cut -d: -f1,3 /etc/passwd | sort -nr -t: -k2 | cut -d: -f1
 
 ## Task31
-Вивести всіх користувачів, які не мають права авторизовуватися або не мають права авторизовуватися в системі. (дві команди)
+Remove all users who do not have the right to log in or do not have the right to log in to the system. (two commands)
 
 **Solution:**
 
@@ -352,7 +352,7 @@ Commands:
     grep 'false' /etc/passwd | cut -d: -f1
 
 ## Task32
-Вивести всіх користувачів, які (мають/не мають) терміналу (bash, sh, zsh and etc, which are installed on the system) (дві команди)
+Display all users who (have/do not have) a terminal (bash, sh, zsh and etc, which are installed on the system) (two commands)
 
 Commands: 
 1. find all in /etc/passwd with grep, -f option to read the patterns from the output of the command inside <(command)
@@ -369,7 +369,7 @@ Commands:
     grep -v -f <(while read -r shell; do echo "$shell\$"; done | cat /etc/shells) /etc/passwd | cut -d: -f1 
 
 ## Task33
-Зі сторінки з інтернету закачати всі посилання на ресурси href, які на сторінці. a) Використовувати curl або wget (зробити обидва варіанти). Закачувати паралельно.  b) Дати рекомендації щодо використання. 
+Download all links to href resources on the page from the Internet. Use curl or wget (make both options). Download in parallel. 
 
 Commands: 
 1. make request to site without displaying progress meter, but show error if it fails: curl -sS
@@ -382,7 +382,7 @@ Commands:
     curl -s "URLaddressishere" | grep -oE 'href="([^"]+)"'| cut -d'"' -f2 | xargs -P 0 wget
 
 ## Task34
-Зупинити процеси, які працюють понад 5 днів.  a) використовувати killall; b) команду ps / killall не використовувати. 
+Stop processes that have been running for more than 5 days. a) use killall; b) do not use the ps / killall command.
 
 Commands for option b: 
 1. list the elapsed time and process ID of running processes in Linux: ps -eoetime=,pid= 
@@ -398,7 +398,7 @@ Commands for option b:
     ps -eoetime=,pid= | grep -E '(0[5-9]|[1-9][0-9])-[0-9]{2}:[0-9]{2}:[0-9]{2}' | cut -d' ' -f2 | xargs -I{} kill {}
 
 ## Task35
-Є директорія, в якій існують папки та файли (*.txt & *.jpeg). Файли *.txt і *.jpeg однозначно пов'язані між собою за префіксом імені. Файли можуть перебувати в різному місці цієї директорії. Потрібно видалити всі *.jpeg для яких не існує файлу *.txt. 
+There is a directory in which folders and files (*.txt & *.jpeg) exist. The *.txt and *.jpeg files are uniquely linked by the name prefix. The files can be in different places in this directory. You need to delete all *.jpegs for which there is no *.txt file.
 
 Commands: 
 1. find all find all .jpg and .txt names: find . -type f \( -name "*.txt" -o -name "*.jpg" \) -exec basename {} \;
@@ -421,14 +421,14 @@ Find your IP address using the command line
     curl -s https://ipinfo.io/ip
 
 ## Task37
-Отримати всі ip-адреси з текстового файлу 
+Get all ip addresses from a text file
 
 **Solution:**
 
     grep -oE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' filename.txt
 
 ## Task38
-Знайти всі активні хости в: - заданій мережі,  - списку IP (hosts-server.txt) використовуючи/не використовуючи nMAP; 
+Find all active hosts in: - given network, - IP list (hosts-server.txt) using/not using nMAP;
 
 Commands: 
 1. nmap: -sn serforms a ping scan (ICMP echo request) to determine host availability, -iL specifies that the input for scanning should be read from a file
@@ -447,16 +447,16 @@ Commands:
     xargs -I {} ping -c 1 {} < hosts-server.txt | grep "bytes from"
 
 ## Task39
-Використовуючи результат таска 36 (as I understood, it meant task 38 results). Отримати ip піднятих інтерфейсів
+Using the result of task 38, get the IP of the raised interfaces
 
 **Solution:**
 
     nmap -sn 192.168.1.0/24 | grep -oE '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b'
 
 ## Task40
-Отримати всі піддомени з SSL сертифіката. 
+Get all subdomains with SSL certificate.
 
-##### будь який сайт що підтримує SSL: підключитися, отримати сертифікати (в ньому будуть перераховані усі домени), видати список усіх доменів
+##### any site that supports SSL: connect, get certificates (it will list all domains), issue a list of all domains
 
 Commands: 
 1. connect to the specified domain on port 443: openssl s_client -connect example.com:443
@@ -469,7 +469,7 @@ Commands:
     echo | openssl s_client -connect example.com:443 2>/dev/null | openssl x509 -noout -text | grep "DNS:"
 
 ## Task41
-Витягти шлях, ім'я та розширення файлу в Bash зі строки. (трикоманди)
+Extract the path, name and extension of a file in Bash from a string. (three teams)
 
 **Solution:**
     get path:
@@ -483,14 +483,14 @@ Commands:
 
 
 ## Task42
-Як видалити файли вказаної довжини та шаблону імені з відповідного каталогу? (Підкаталоги також можуть існувати)
+How to remove files of specified length and name pattern from the corresponding directory? (Subdirectories can also exist)
 
 **Solution:**
     for all .txt files more than 10k:
     find /path/to/directory -type f -name "*.txt" -size +10k -delete
 
 ## Task43
-Є файл в якому існує 2 стовпчика, що розділені пробілом: ім’я файлу та ідентифікатор у вигляді хеш-значення (4 байта). Створити усі файли та записати до них відповідні ідентифікатори. 
+There is a file in which there are 2 columns separated by a space: the name of the file and the identifier in the form of a hash value (4 bytes). Create all files and write the corresponding identifiers to them.
 
 Commands: 
 1. read the file by lines and split line into fields "file_name" and "hash" usig space as delimiter (IFS=' '): while IFS=' ' read -r file_name hash; do ...; done
